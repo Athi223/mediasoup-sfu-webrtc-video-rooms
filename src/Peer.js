@@ -5,6 +5,7 @@ module.exports = class Peer {
         this.transports = new Map()
         this.consumers = new Map()
         this.producers = new Map()
+        this.producer_socket = new Map()
     }
 
 
@@ -19,18 +20,20 @@ module.exports = class Peer {
         });
     }
 
-    async createProducer(producerTransportId, rtpParameters, kind) {
+    async createProducer(socket_id, producerTransportId, rtpParameters, kind) {
         //TODO handle null errors
         let producer = await this.transports.get(producerTransportId).produce({
             kind,
             rtpParameters
         })
-
+        
+        this.producer_socket.set(producer.id, socket_id)
         this.producers.set(producer.id, producer)
 
         producer.on('transportclose', function() {
             console.log(`---producer transport close--- name: ${this.name} consumer_id: ${producer.id}`)
             producer.close()
+            this.producer_socket.delete(producer.id)
             this.producers.delete(producer.id)
             
         }.bind(this))

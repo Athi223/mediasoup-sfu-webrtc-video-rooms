@@ -17,12 +17,13 @@ module.exports = class Room {
         this.peers.set(peer.id, peer)
     }
 
-    getProducerListForPeer(socket_id) {
+    getProducerListForPeer() {
         let producerList = []
         this.peers.forEach(peer => {
             peer.producers.forEach(producer => {
                 producerList.push({
-                    producer_id: producer.id
+                    producer_id: producer.id,
+                    producer_socket_id: peer.producer_socket.get(producer.id)
                 })
             })
         })
@@ -84,7 +85,7 @@ module.exports = class Room {
     async produce(socket_id, producerTransportId, rtpParameters, kind) {
         // handle undefined errors
         return new Promise(async function (resolve, reject) {
-            let producer = await this.peers.get(socket_id).createProducer(producerTransportId, rtpParameters, kind)
+            let producer = await this.peers.get(socket_id).createProducer(socket_id, producerTransportId, rtpParameters, kind)
             resolve(producer.id)
             this.broadCast(socket_id, 'newProducers', [{
                 producer_id: producer.id,

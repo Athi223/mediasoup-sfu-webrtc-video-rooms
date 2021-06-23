@@ -91,20 +91,17 @@ io.on('connection', socket => {
 		}
 	})
 
-	socket.on('join', ({
-		room_id,
-		name
-	}, cb) => {
-
+	socket.on('join', ({ room_id, name }, cb) => {
+        socket.join(room_id)
 		console.log('---user joined--- \"' + room_id + '\": ' + name)
 		if (!roomList.has(room_id)) {
 			return cb({
 				error: 'room does not exist'
 			})
 		}
+        socket.to(room_id).emit('joined', { id: socket.id, name: name })
 		roomList.get(room_id).addPeer(new Peer(socket.id, name))
 		socket.room_id = room_id
-
 		cb(roomList.get(room_id).toJson())
 	})
 
@@ -191,9 +188,6 @@ io.on('connection', socket => {
 		callback();
 	});
 
-	socket.on('getMyRoomInfo', (_, cb) => {
-		cb(roomList.get(socket.room_id).toJson())
-	})
 
 	socket.on('disconnect', () => {
 		console.log(`---disconnect--- name: ${roomList.get(socket.room_id) && roomList.get(socket.room_id).getPeers().get(socket.id).name}`)

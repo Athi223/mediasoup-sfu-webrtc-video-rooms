@@ -67,7 +67,23 @@ class RoomClient {
 			name,
 			room_id
 		}).then(async function (e) {
-			console.log(e)
+			for(let client of JSON.parse(e.peers))
+			{
+				if(client[1].name != name)
+				{
+					const peer = document.createElement('div')
+					peer.innerHTML = client[1].name
+					peer.style.position = 'absolute'
+					peer.style.zIndex = '1'
+					peer.className = 'd-flex align-items-center justify-content-center w-100 h-100'
+					const container = document.createElement('div')
+					container.className = 'card w-auto my-3'
+					container.style.minHeight = '18vh'
+					container.id = client[1].id
+					container.appendChild(peer)
+					remoteVideos.appendChild(container)
+				}
+			}
 			const data = await this.socket.request('getRouterRtpCapabilities');
 			let device = await this.loadDevice(data)
 			this.device = device
@@ -221,11 +237,25 @@ class RoomClient {
 		this.socket.on('newProducers', async function (data) {
 			console.log('new producers', data)
 			for (let {
-					producer_id
+					producer_id, producer_socket_id
 				} of data) {
-				await this.consume(producer_id)
+				await this.consume(producer_id, producer_socket_id)
 			}
 		}.bind(this))
+
+		this.socket.on('joined', function(data) {
+			const peer = document.createElement('div')
+			peer.innerHTML = data.name
+			peer.style.position = 'absolute'
+			peer.style.zIndex = '1'
+			peer.className = 'd-flex align-items-center justify-content-center w-100 h-100'
+			const container = document.createElement('div')
+			container.className = 'card w-auto my-3'
+			container.style.minHeight = '18vh'
+			container.id = data.id
+			container.appendChild(peer)
+			remoteVideos.appendChild(container)
+		})
 
 		this.socket.on('disconnect', function () {
 			this.exit(true)
@@ -365,7 +395,7 @@ class RoomClient {
 		}
 	}
 
-	async consume(producer_id) {
+	async consume(producer_id, producer_socket_id) {
 
 		this.getConsumeStream(producer_id).then(function ({
 			consumer,
@@ -374,7 +404,6 @@ class RoomClient {
 		}) {
 
 			this.consumers.set(consumer.id, consumer)
-
 			let elem, container;
 			if (kind === 'video') {
 				elem = document.createElement('video')
@@ -382,8 +411,9 @@ class RoomClient {
 				elem.id = consumer.id
 				elem.playsinline = false
 				elem.autoplay = true
-				container = document.createElement('div')
-				container.className = "card my-3"
+				container = document.getElementById(producer_socket_id)
+				container.className = "card w-auto my-3"
+				container.style.minHeight = '18vh'
 				container.appendChild(elem)
 				this.remoteVideoEl.appendChild(container)
 			} else {
@@ -528,11 +558,6 @@ class RoomClient {
 	}
 
 	///////  HELPERS //////////
-
-	async roomInfo() {
-		let info = await socket.request('getMyRoomInfo')
-		return info
-	}
 
 	static get mediaType() {
 		return mediaType

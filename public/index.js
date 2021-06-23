@@ -37,15 +37,15 @@ function roomOpen() {
 }
 
 function addListeners() {
-	rc.on(RoomClient.EVENTS.startScreen, () => {
-		startScreenButton.classList.add('d-none')
-		stopScreenButton.classList.remove('d-none')
-	})
+	// rc.on(RoomClient.EVENTS.startScreen, () => {
+	// 	startScreenButton.classList.add('d-none')
+	// 	stopScreenButton.classList.remove('d-none')
+	// })
 
-	rc.on(RoomClient.EVENTS.stopScreen, () => {
-		stopScreenButton.classList.add('d-none')
-		startScreenButton.classList.remove('d-none')
-	})
+	// rc.on(RoomClient.EVENTS.stopScreen, () => {
+	// 	stopScreenButton.classList.add('d-none')
+	// 	startScreenButton.classList.remove('d-none')
+	// })
 
 	rc.on(RoomClient.EVENTS.stopAudio, () => {
 		stopAudioButton.classList.add('d-none')
